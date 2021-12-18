@@ -1,0 +1,14 @@
+image:
+  # image.repository -- Accurate image repository to use.
+  repository: storage-capacity-prioritization-scheduler
+
+  # image.tag -- Accurate image tag to use.
+  # @default -- `{{ .Chart.AppVersion }}`
+  tag: # 0.1.0
+
+  # image.pullPolicy -- Accurate image pullPolicy.
+  pullPolicy:  # Always
+
+scheduler:
+  # controller.replicas -- Specify the number of replicas of the controller Pod.
+  replicas: 1

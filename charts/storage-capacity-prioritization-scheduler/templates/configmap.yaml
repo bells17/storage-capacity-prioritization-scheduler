@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  {{ template "storage-capacity-prioritization-scheduler.fullname" . }}-scheduler-config
+  namespace: {{ .Release.Namespace }}
+data:
+  scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1beta3
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: false
+    profiles:
+    - schedulerName: storage-capacity-prioritization-scheduler
+      plugins:
+        PreFilter:
+          enabled:
+          - name: StorageCapacityPrioritization
+        filter:
+          enabled:
+          - name: StorageCapacityPrioritization
+        preScore:
+          enabled:
+          - name: StorageCapacityPrioritization
+        score:
+          enabled:
+          - name: StorageCapacityPrioritization
+            weight: 5

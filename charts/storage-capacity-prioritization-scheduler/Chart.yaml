@@ -1,0 +1,6 @@
+apiVersion: v2
+name: storage-capacity-prioritization-scheduler
+description: deploy storage-capacity-prioritization-scheduler in cluster
+type: application
+version: 0.1.0
+appVersion: 0.1.0

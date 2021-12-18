@@ -1,0 +1,9 @@
+socket-name: /tmp/scp-scheduler/lvmd2/lvmd.sock
+device-classes:
+  - name: "ssd"
+    volume-group: "scp-scheduler-node2-myvg1"
+    default: true
+    spare-gb: 1
+  - name: "hdd1"
+    volume-group: "scp-scheduler-node2-myvg2"
+    spare-gb: 1

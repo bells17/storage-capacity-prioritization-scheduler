@@ -1,0 +1,47 @@
+image:
+  repository: quay.io/topolvm/topolvm-with-sidecar
+  tag: 0.10.5
+  pullPolicy: Always
+
+controller:
+  replicaCount: 1
+  storageCapacityTracking:
+    enabled: true
+  securityContext:
+    enabled: false
+  nodeSelector: {}
+  # sanity test requires that the controller mounts this hostPath to communicate with it
+  volumes:
+    - name: socket-dir
+      hostPath:
+        path: /var/lib/kubelet/plugins/topolvm.cybozu.com/controller
+        type: DirectoryOrCreate
+
+scheduler:
+  enabled: false
+
+lvmd:
+  managed: false
+
+node:
+  lvmdSocket: /tmp/scp-scheduler/lvmd.sock
+
+storageClasses:
+  - name: topolvm-provisioner
+    storageClass:
+      fsType: xfs
+      isDefaultClass: false
+      volumeBindingMode: WaitForFirstConsumer
+      allowVolumeExpansion: true
+      additionalParameters:
+        topolvm.cybozu.com/device-class: "ssd"
+
+webhook:
+  podMutatingWebhook:
+    enabled: false
+
+podSecurityPolicy:
+  create: false
+
+cert-manager:
+  enabled: false

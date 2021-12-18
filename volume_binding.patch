@@ -1,0 +1,116 @@
+--- vendor/k8s.io/kubernetes/pkg/scheduler/framework/plugins/volumebinding/volume_binding.go	2022-03-09 02:48:56.549244429 +0900
++++ volume_binding.go.txt	2022-03-09 02:48:16.431000000 +0900
+@@ -49,7 +49,7 @@
+ // the state is initialized in PreFilter phase. because we save the pointer in
+ // framework.CycleState, in the later phases we don't need to call Write method
+ // to update the value
+-type stateData struct {
++type StateData struct {
+ 	skip         bool // set true if pod does not have PVCs
+ 	boundClaims  []*v1.PersistentVolumeClaim
+ 	claimsToBind []*v1.PersistentVolumeClaim
+@@ -61,10 +61,25 @@
+ 	sync.Mutex
+ }
+ 
+-func (d *stateData) Clone() framework.StateData {
++func (d *StateData) Clone() framework.StateData {
+ 	return d
+ }
+ 
++func (d *StateData) GetClaimsToBind() []*v1.PersistentVolumeClaim {
++	return d.claimsToBind
++}
++
++func (d *StateData) GetPodVolumesByNodeName(node string) *PodVolumes {
++	return d.podVolumesByNode[node]
++}
++
++func FakeStateData(claimsToBind []*v1.PersistentVolumeClaim, podVolumesByNode map[string]*PodVolumes) *StateData {
++	return &StateData{
++		claimsToBind:     claimsToBind,
++		podVolumesByNode: podVolumesByNode,
++	}
++}
++
+ // VolumeBinding is a plugin that binds pod volumes in scheduling.
+ // In the Filter phase, pod binding cache is created for the pod and used in
+ // Reserve and PreBind phases.
+@@ -174,7 +189,7 @@
+ 	if hasPVC, err := pl.podHasPVCs(pod); err != nil {
+ 		return framework.NewStatus(framework.UnschedulableAndUnresolvable, err.Error())
+ 	} else if !hasPVC {
+-		state.Write(stateKey, &stateData{skip: true})
++		state.Write(stateKey, &StateData{skip: true})
+ 		return nil
+ 	}
+ 	boundClaims, claimsToBind, unboundClaimsImmediate, err := pl.Binder.GetPodVolumes(pod)
+@@ -189,7 +204,7 @@
+ 		status.AppendReason("pod has unbound immediate PersistentVolumeClaims")
+ 		return status
+ 	}
+-	state.Write(stateKey, &stateData{boundClaims: boundClaims, claimsToBind: claimsToBind, podVolumesByNode: make(map[string]*PodVolumes)})
++	state.Write(stateKey, &StateData{boundClaims: boundClaims, claimsToBind: claimsToBind, podVolumesByNode: make(map[string]*PodVolumes)})
+ 	return nil
+ }
+ 
+@@ -198,12 +213,12 @@
+ 	return nil
+ }
+ 
+-func getStateData(cs *framework.CycleState) (*stateData, error) {
++func GetStateData(cs *framework.CycleState) (*StateData, error) {
+ 	state, err := cs.Read(stateKey)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+-	s, ok := state.(*stateData)
++	s, ok := state.(*StateData)
+ 	if !ok {
+ 		return nil, errors.New("unable to convert state into stateData")
+ 	}
+@@ -231,7 +246,7 @@
+ 		return framework.NewStatus(framework.Error, "node not found")
+ 	}
+ 
+-	state, err := getStateData(cs)
++	state, err := GetStateData(cs)
+ 	if err != nil {
+ 		return framework.AsStatus(err)
+ 	}
+@@ -266,7 +281,7 @@
+ 	if pl.scorer == nil {
+ 		return 0, nil
+ 	}
+-	state, err := getStateData(cs)
++	state, err := GetStateData(cs)
+ 	if err != nil {
+ 		return 0, framework.AsStatus(err)
+ 	}
+@@ -298,7 +313,7 @@
+ 
+ // Reserve reserves volumes of pod and saves binding status in cycle state.
+ func (pl *VolumeBinding) Reserve(ctx context.Context, cs *framework.CycleState, pod *v1.Pod, nodeName string) *framework.Status {
+-	state, err := getStateData(cs)
++	state, err := GetStateData(cs)
+ 	if err != nil {
+ 		return framework.AsStatus(err)
+ 	}
+@@ -323,7 +338,7 @@
+ // If binding errors, times out or gets undone, then an error will be returned to
+ // retry scheduling.
+ func (pl *VolumeBinding) PreBind(ctx context.Context, cs *framework.CycleState, pod *v1.Pod, nodeName string) *framework.Status {
+-	s, err := getStateData(cs)
++	s, err := GetStateData(cs)
+ 	if err != nil {
+ 		return framework.AsStatus(err)
+ 	}
+@@ -349,7 +364,7 @@
+ // Unreserve clears assumed PV and PVC cache.
+ // It's idempotent, and does nothing if no cache found for the given pod.
+ func (pl *VolumeBinding) Unreserve(ctx context.Context, cs *framework.CycleState, pod *v1.Pod, nodeName string) {
+-	s, err := getStateData(cs)
++	s, err := GetStateData(cs)
+ 	if err != nil {
+ 		return
+ 	}
