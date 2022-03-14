@@ -2,6 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ template "storage-capacity-prioritization-scheduler.fullname" . }}
+  labels:
+    {{- include "storage-capacity-prioritization-scheduler.labels" . | nindent 4 }}
 rules:
 - apiGroups: ["", "events.k8s.io"]
   resources: ["events"]
@@ -64,6 +66,8 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ template "storage-capacity-prioritization-scheduler.fullname" . }}
+  labels:
+    {{- include "storage-capacity-prioritization-scheduler.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

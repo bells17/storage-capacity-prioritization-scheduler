@@ -3,17 +3,20 @@ kind: Deployment
 metadata:
   labels:
     component: scheduler
+    {{- include "storage-capacity-prioritization-scheduler.labels" . | nindent 4 }}
   name: {{ template "storage-capacity-prioritization-scheduler.fullname" . }}
   namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:
       component: scheduler
+      {{- include "storage-capacity-prioritization-scheduler.selectorLabels" . | nindent 6 }}
   replicas: {{ .Values.scheduler.replicas }}
   template:
     metadata:
       labels:
         component: scheduler
+        {{- include "storage-capacity-prioritization-scheduler.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ template "storage-capacity-prioritization-scheduler.fullname" . }}
       containers:

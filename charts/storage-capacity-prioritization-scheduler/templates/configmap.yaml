@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name:  {{ template "storage-capacity-prioritization-scheduler.fullname" . }}-scheduler-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "storage-capacity-prioritization-scheduler.labels" . | nindent 4 }}
 data:
   scheduler-config.yaml: |
     apiVersion: kubescheduler.config.k8s.io/v1beta3
