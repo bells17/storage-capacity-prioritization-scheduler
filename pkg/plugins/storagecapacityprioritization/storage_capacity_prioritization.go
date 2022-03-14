@@ -314,7 +314,7 @@ func (pl *StorageCapacityPrioritization) hasEnoughCapacity(node *v1.Node, classN
 }
 
 func calculateScore(nodes []*v1.Node, storageClassNames []string, capacities []*v1beta1.CSIStorageCapacity, claims claimsByStorageClass) (map[string]int64, error) {
-	capacityUsageMap := make(map[string]map[string]int64) // map[nodeName]map[claimName]usage
+	capacityUsageMap := make(map[string]map[string]int64) // map[nodeName]map[className]usage
 	for _, className := range storageClassNames {
 		for _, node := range nodes {
 			var found bool
