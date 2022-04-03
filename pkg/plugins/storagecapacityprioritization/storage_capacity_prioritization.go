@@ -361,12 +361,7 @@ func calculateScore(nodes []*v1.Node, storageClassNames []string, capacities []*
 }
 
 func capacitySufficient(capacity *storagev1beta1.CSIStorageCapacity, sizeInBytes int64) bool {
-	limit := capacity.Capacity
-	if capacity.MaximumVolumeSize != nil {
-		// Prefer MaximumVolumeSize if available, it is more precise.
-		limit = capacity.MaximumVolumeSize
-	}
-	return limit != nil && limit.Value() >= sizeInBytes
+	return capacity.Capacity != nil && capacity.Capacity.Value() >= sizeInBytes
 }
 
 func nodeHasAccess(node *v1.Node, capacity *storagev1beta1.CSIStorageCapacity) bool {
